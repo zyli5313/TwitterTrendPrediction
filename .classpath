@@ -4,5 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="/Users/lpq1990/Documents/workspace/10605/TwitterTrendPrediction/lib/hadoop-core-1.0.4.jar"/>
 	<classpathentry kind="lib" path="/Users/lpq1990/Documents/workspace/10605/TwitterTrendPrediction/lib/json-lib.jar"/>
+	<classpathentry kind="lib" path="/Users/lpq1990/Documents/workspace/10605/TwitterTrendPrediction/lib/commons-cli-1.2.jar"/>
+	<classpathentry kind="lib" path="/Users/lpq1990/Documents/workspace/10605/TwitterTrendPrediction/lib/lingpipe-4.1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
