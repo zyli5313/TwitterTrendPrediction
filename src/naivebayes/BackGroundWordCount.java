@@ -14,6 +14,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.aliasi.tokenizer.*;
@@ -22,17 +23,22 @@ public class BackGroundWordCount {
 	public static class CountMapper extends Mapper<LongWritable, Text, Text, IntWritable>{
 		private final static IntWritable one = new IntWritable(1);
 	    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-	    	String[] keyValue = value.toString().split("\t");
-	    	String jsonLine = keyValue[2];
-	    	JSONObject json = new JSONObject(jsonLine);
-	        String text = json.getString("text");        
-	    	Vector<String> tokens = tokenizeDoc(text);
-	    	int count = 0;
-	    	for(String str:tokens){
-	    		context.write(new Text(str),one);
-	    		count++;
+	    	try{
+	    		String[] keyValue = value.toString().split("\t");
+		    	String jsonLine = keyValue[2];
+		    	JSONObject json = new JSONObject(jsonLine);
+		        String text = json.getString("text");        
+		    	Vector<String> tokens = tokenizeDoc(text);
+		    	int count = 0;
+		    	for(String str:tokens){
+		    		context.write(new Text(str),one);
+		    		count++;
+		    	}
+		    	context.write(new Text("#Total"),new IntWritable(count));
+	    	}catch(JSONException je){
+	    		//do nothing
 	    	}
-	    	context.write(new Text("#Total"),new IntWritable(count));	    	
+	    		    	
 	    }
 	    public Vector<String> tokenizeDoc(String tweet) {
 			Vector<String> tokens = new Vector<String>();

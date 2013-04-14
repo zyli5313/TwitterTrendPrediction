@@ -1,5 +1,7 @@
 package naivebayes;
 
+import org.json.JSONObject;
+
 import com.aliasi.tokenizer.EnglishStopTokenizerFactory;
 import com.aliasi.tokenizer.LowerCaseTokenizerFactory;
 import com.aliasi.tokenizer.PorterStemmerTokenizerFactory;
@@ -51,6 +53,6 @@ public class NormalizedTokenizerFactory extends ModifyTokenTokenizerFactory {
 	while ((token = tokenizer.nextToken()) != null) {
 	    System.out.println("Token: " + token);
 	    System.out.println("White Space :'" + tokenizer.nextWhitespace()+"'");
-	}
+	}   
     }
 }
