@@ -1,7 +1,5 @@
 package naivebayes;
 
-import org.json.JSONObject;
-
 import com.aliasi.tokenizer.EnglishStopTokenizerFactory;
 import com.aliasi.tokenizer.LowerCaseTokenizerFactory;
 import com.aliasi.tokenizer.PorterStemmerTokenizerFactory;
@@ -30,7 +28,9 @@ public class NormalizedTokenizerFactory extends ModifyTokenTokenizerFactory {
 	else if (token.startsWith("http")) {
 	    return null;
 	}
-
+	else if (token.matches(".*\\d+.*")) {
+	    return null;
+	}
 	else {
 	    return token;
 	}
