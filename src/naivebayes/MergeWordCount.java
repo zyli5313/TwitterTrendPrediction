@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -22,11 +23,14 @@ public class MergeWordCount {
 	public static class MergeReducer extends Reducer<Text,Text,Text,Text> {
 		public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
 			StringBuffer res = new StringBuffer();
+			int count = 0;
 			for (Text val : values) {
 				res.append(val.toString()).append(",");
+				count++;
 			}
 			res.deleteCharAt(res.length()-1);
 			context.write(key, new Text(res.toString()));
+			if(count>1) context.write(new Text("#totalDic"), new Text("1"));
 		}
 	}
 	public static void main(String[] args) throws Exception {

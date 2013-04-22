@@ -14,37 +14,57 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import tokenweight.NormalizedTokenizerFactory;
+
+import com.aliasi.tokenizer.EnglishStopTokenizerFactory;
+import com.aliasi.tokenizer.LowerCaseTokenizerFactory;
+import com.aliasi.tokenizer.PorterStemmerTokenizerFactory;
+import com.aliasi.tokenizer.Tokenizer;
+import com.aliasi.tokenizer.TokenizerFactory;
 
 public class CountForNB {
 	public static class CountMapper extends Mapper<LongWritable, Text, Text, IntWritable>{
 		private final static IntWritable one = new IntWritable(1);
 	    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-	    	String[] keyValue = value.toString().split("\t");
-	    	String[] classes = keyValue[0].split(",");
-	    	for(String s:classes){
-	    		context.write(new Text("!"+s),one);
-			}
-	    	context.write(new Text("#totalY"),one);
-	    	Vector<String> tokens = tokenizeDoc(keyValue[1]);
-	    	for(String s:classes){
+	    	try{
+	    		String[] keyValue = value.toString().split("\t");
+	    		String jsonLine = keyValue[2];
+	    		JSONObject json = new JSONObject(jsonLine);
+	    		String text = json.getString("text");        
+	    		Vector<String> tokens = tokenizeDoc(text);
+	    		//label-instances count
+	    		context.write(new Text("!"+keyValue[0]),one);
+	    		//instances count;
+	    		context.write(new Text("#totalInstance"),one);
 	    		int count = 0;
 	    		for(String str:tokens){
-	    			String keyPair = str+":"+s;
+	    			String keyPair = str+":"+keyValue[0];
+	    			//token:label count
 	    			context.write(new Text(keyPair),one);
 	    			count++;
 	    		}
-	    		context.write(new Text("%"+s),new IntWritable(count));
-	    	}
-	    	
+	    		//label token count
+	    		context.write(new Text("%"+keyValue[0]),new IntWritable(count));
+	    	}catch(JSONException je){
+	    		//do nothing
+	    	} 	
 	    }
-	    public Vector<String> tokenizeDoc(String cur_doc) {
-			String[] words = cur_doc.split("\\s+");
+		public Vector<String> tokenizeDoc(String tweet) {
 			Vector<String> tokens = new Vector<String>();
-			for (int i = 0; i < words.length; i++) {
-				words[i] = words[i].replaceAll("\\W", "");
-				if (words[i].length() > 0) {
-					tokens.add(words[i]);
-				}
+			TokenizerFactory tokFactory = new NormalizedTokenizerFactory();
+			tokFactory = new LowerCaseTokenizerFactory(tokFactory);
+			tokFactory = new EnglishStopTokenizerFactory(tokFactory);
+			tokFactory = new PorterStemmerTokenizerFactory(tokFactory);
+			char[] chars = tweet.toCharArray();
+			Tokenizer tokenizer 
+    	    	= tokFactory.tokenizer(chars,0,chars.length);
+			String token;
+			while ((token = tokenizer.nextToken()) != null) {
+				token = token.toLowerCase();		
+				tokens.add(token);
 			}
 			return tokens;
 		}
