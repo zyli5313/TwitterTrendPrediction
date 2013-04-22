@@ -141,6 +141,7 @@ public class PrepTSWithLabel extends Configured implements Tool {
           // "lb \t json"
           text.set(lb + "\t" + jsonStr);
           
+          // group by hashtag
           output.collect(tag, text);
           break;
         }

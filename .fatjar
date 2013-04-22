@@ -1,5 +1,5 @@
 #Fat Jar Configuration File
-#Thu Mar 28 20:51:09 EDT 2013
+#Sun Apr 14 16:35:14 EDT 2013
 onejar.license.required=false
 manifest.classpath=
 manifest.removesigners=true
@@ -10,5 +10,5 @@ manifest.mainclass=
 manifest.file=<createnew>
 jarname.isextern=false
 onejar.expand=
-excludes=<po|TwitterTrendPrediction>~.DS_Store;<jar|hadoop-core-1.0.4.jar>
+excludes=<jar|hadoop-core-1.0.4.jar>
 includes=
