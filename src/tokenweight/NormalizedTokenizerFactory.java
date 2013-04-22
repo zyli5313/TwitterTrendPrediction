@@ -1,4 +1,4 @@
-package naivebayes;
+package tokenweight;
 
 import com.aliasi.tokenizer.EnglishStopTokenizerFactory;
 import com.aliasi.tokenizer.LowerCaseTokenizerFactory;

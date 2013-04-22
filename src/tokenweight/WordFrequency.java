@@ -1,4 +1,4 @@
-package naivebayes;
+package tokenweight;
 
 import java.io.IOException;
 
