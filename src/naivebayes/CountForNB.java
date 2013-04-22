@@ -14,51 +14,43 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import com.aliasi.tokenizer.*;
-
-public class WordCount {
+public class CountForNB {
 	public static class CountMapper extends Mapper<LongWritable, Text, Text, IntWritable>{
 		private final static IntWritable one = new IntWritable(1);
 	    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-	    	try{
-	    		String[] keyValue = value.toString().split("\t");
-		    	String jsonLine = keyValue[2];
-		    	JSONObject json = new JSONObject(jsonLine);
-		        String text = json.getString("text");        
-		    	Vector<String> tokens = tokenizeDoc(text);
-		    	int count = 0;
-		    	for(String str:tokens){
-		    		context.write(new Text(str),one);
-		    		count++;
-		    	}
-		    	context.write(new Text("#Total"),new IntWritable(count));
-	    	}catch(JSONException je){
-	    		//do nothing
+	    	String[] keyValue = value.toString().split("\t");
+	    	String[] classes = keyValue[0].split(",");
+	    	for(String s:classes){
+	    		context.write(new Text("!"+s),one);
+			}
+	    	context.write(new Text("#totalY"),one);
+	    	Vector<String> tokens = tokenizeDoc(keyValue[1]);
+	    	for(String s:classes){
+	    		int count = 0;
+	    		for(String str:tokens){
+	    			String keyPair = str+":"+s;
+	    			context.write(new Text(keyPair),one);
+	    			count++;
+	    		}
+	    		context.write(new Text("%"+s),new IntWritable(count));
 	    	}
-	    		    	
+	    	
 	    }
-	    public Vector<String> tokenizeDoc(String tweet) {
+	    public Vector<String> tokenizeDoc(String cur_doc) {
+			String[] words = cur_doc.split("\\s+");
 			Vector<String> tokens = new Vector<String>();
-			TokenizerFactory tokFactory = new NormalizedTokenizerFactory();
-	    	tokFactory = new LowerCaseTokenizerFactory(tokFactory);
-	    	tokFactory = new EnglishStopTokenizerFactory(tokFactory);
-	    	tokFactory = new PorterStemmerTokenizerFactory(tokFactory);
-	    	char[] chars = tweet.toCharArray();
-	    	Tokenizer tokenizer 
-	    	    = tokFactory.tokenizer(chars,0,chars.length);
-	    	String token;
-			while ((token = tokenizer.nextToken()) != null) {
-				token = token.toLowerCase();		
-			    tokens.add(token);
+			for (int i = 0; i < words.length; i++) {
+				words[i] = words[i].replaceAll("\\W", "");
+				if (words[i].length() > 0) {
+					tokens.add(words[i]);
+				}
 			}
 			return tokens;
 		}
 	}
 	
-	public static class CountReducer extends Reducer<Text,IntWritable,Text,IntWritable>{
+	public static class CountCombiner extends Reducer<Text,IntWritable,Text,IntWritable>{
 		private IntWritable result = new IntWritable();
 		public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
 			int sum = 0;
@@ -69,22 +61,35 @@ public class WordCount {
 			context.write(key, result);
 		}
 	}
+	public static class CountReducer extends Reducer<Text,IntWritable,Text,Text> {
+		public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+			int sum = 0;
+			for (IntWritable val : values) {
+				sum += val.get();
+			}
+			if(key.toString().contains(":")){
+				context.write(new Text(key.toString().split(":")[0]), new Text(key+"="+sum));
+			}else{
+				context.write(key, new Text(String.valueOf(sum)));
+			}
+		}
+	}
 	public static void main(String[] args) throws Exception {
 	    Configuration conf = new Configuration();
 	    String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 	    if (otherArgs.length != 3) {
-	      System.err.println("Usage: WordCount <in> <out> <reducer>");
+	      System.err.println("Usage: CountForNB <in> <out> <reducer>");
 	      System.exit(3);
 	    }
-	    Job job = new Job(conf, "WordCount");
-	    job.setJarByClass(WordCount.class);
+	    Job job = new Job(conf, "CountForNB");
+	    job.setJarByClass(CountForNB.class);
 	    job.setMapperClass(CountMapper.class);
-	    job.setCombinerClass(CountReducer.class);
+	    job.setCombinerClass(CountCombiner.class);
 	    job.setReducerClass(CountReducer.class);
 	    job.setMapOutputKeyClass(Text.class);
 	    job.setMapOutputValueClass(IntWritable.class);
 	    job.setOutputKeyClass(Text.class);
-	    job.setOutputValueClass(IntWritable.class);
+	    job.setOutputValueClass(Text.class);
 	    job.setNumReduceTasks(Integer.parseInt(otherArgs[2]));
 	    FileInputFormat.addInputPath(job, new Path(otherArgs[0]));
 	    FileOutputFormat.setOutputPath(job, new Path(otherArgs[1]));
