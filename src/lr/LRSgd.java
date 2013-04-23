@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.aliasi.tokenizer.EnglishStopTokenizerFactory;
@@ -85,8 +86,10 @@ public class LRSgd {
   }
 
   public void train() {
+    int badcnt = 0;
     try {
       BufferedWriter bw = new BufferedWriter(new FileWriter(LCLPath));
+      
       // for each iteration
       for (int t = 1; t <= T; t++) {
         lambda = yita / (t * t); // lambda decreases along iteration
@@ -107,8 +110,14 @@ public class LRSgd {
           HashSet<String> yset = new HashSet<String>();
           yset.add(strs[0]); // label set contains only one element
 
-          JSONObject json = new JSONObject(strs[2]);
-
+          JSONObject json;
+          try {
+            json = new JSONObject(strs[2]);
+          }
+          catch(JSONException je) {
+            badcnt++;
+            continue;
+          }
           // TODO: add tokenizer
           String text = json.getString("text");
           String[] words = tokenizeDoc(text);
@@ -196,12 +205,13 @@ public class LRSgd {
     } catch (IOException e) {
       e.printStackTrace();
     }
-    System.out.println("Training Done!");
+    System.out.println("Training Done! bad cnt:" + badcnt);
   }
 
   public void test() {
     BufferedReader br;
     BufferedWriter bw;
+    int badcnt = 0;
     try {
       GZIPInputStream gzip = new GZIPInputStream(new FileInputStream(fileTestPath));
       br = new BufferedReader(new InputStreamReader(gzip));
@@ -217,7 +227,14 @@ public class LRSgd {
       while ((line = br.readLine()) != null) {
         // line: <hashtag> <lable> <json>
         String[] strs = line.split("\t");
-        JSONObject json = new JSONObject(strs[2]);
+        JSONObject json;
+        try {
+          json = new JSONObject(strs[2]);
+        }
+        catch(JSONException je) {
+          badcnt++;
+          continue;
+        }
         // TODO: add tokenizer
         String text = json.getString("text");
         String[] tokens = tokenizeDoc(text);
@@ -346,6 +363,7 @@ public class LRSgd {
         System.out.println("pred:" + lbmax + "\t" + sb.toString());
       }
 
+      System.out.println("bad cnt: " + badcnt);
       String resline = String.format("Percent correct: %d/%d=%.1f%%", ncorr, ntest, (double) ncorr
               / ntest * 100.0);
       bw.write(resline + "\n");
