@@ -8,8 +8,18 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
+import tokenweight.NormalizedTokenizerFactory;
+
+import com.aliasi.tokenizer.EnglishStopTokenizerFactory;
+import com.aliasi.tokenizer.LowerCaseTokenizerFactory;
+import com.aliasi.tokenizer.PorterStemmerTokenizerFactory;
+import com.aliasi.tokenizer.Tokenizer;
+import com.aliasi.tokenizer.TokenizerFactory;
+
 
 public class TestNBUsingRequest {
+	//The Weight of Different Token
+	private HashMap<String,Double> weight = new HashMap<String,Double>();
 	//The number of training instances of class Y
 	private HashMap<String,Integer> countY = new HashMap<String,Integer>();   
 	//Total number of tokens for document with lable Y
@@ -31,10 +41,10 @@ public class TestNBUsingRequest {
 		}else if(mapping[0].charAt(0)=='%'){
 			countToken.put(mapping[0].substring(1), Integer.parseInt(mapping[1]));
 			return;
-		}else if(mapping[0].equals("#totalY")) {
+		}else if(mapping[0].equals("#totalInstance")) {
 			totalY = Integer.parseInt(mapping[1]);
 			return;
-		}else if(mapping[0].equals("#totalV")) {
+		}else if(mapping[0].equals("#totalDic")) {
 			totalVoca = Integer.parseInt(mapping[1]);
 			return;
 		}else{		
@@ -86,14 +96,19 @@ public class TestNBUsingRequest {
 	/*
 	 * Tokenize the document into tokens
 	 */
-	public Vector<String> tokenizeDoc(String cur_doc) {
-		String[] words = cur_doc.split("\\s+");
+	public Vector<String> tokenizeDoc(String tweet) {
 		Vector<String> tokens = new Vector<String>();
-		for (int i = 0; i < words.length; i++) {
-			words[i] = words[i].replaceAll("\\W", "");
-			if (words[i].length() > 0) {
-				tokens.add(words[i]);
-			}
+		TokenizerFactory tokFactory = new NormalizedTokenizerFactory();
+    	tokFactory = new LowerCaseTokenizerFactory(tokFactory);
+    	tokFactory = new EnglishStopTokenizerFactory(tokFactory);
+    	tokFactory = new PorterStemmerTokenizerFactory(tokFactory);
+    	char[] chars = tweet.toCharArray();
+    	Tokenizer tokenizer 
+    	    = tokFactory.tokenizer(chars,0,chars.length);
+    	String token;
+		while ((token = tokenizer.nextToken()) != null) {
+			token = token.toLowerCase();		
+		    tokens.add(token);
 		}
 		return tokens;
 	}
@@ -106,13 +121,25 @@ public class TestNBUsingRequest {
 	}
 	public static void main(String[] args) throws IOException{
 		TestNBUsingRequest nb = new TestNBUsingRequest();
+		//Read Training Model
 		BufferedReader br = new BufferedReader(new FileReader(args[0]));
 		while(br.ready()){
 			String doc = br.readLine();		
 			nb.processRecord(doc);
 		}
 		br.close();
-		br = new BufferedReader(new FileReader(args[1]));
+		//Read Weight Data
+		for(int i=0;i<6;i++){
+			br = new BufferedReader(new FileReader(args[1]+i));
+			while(br.ready()){
+				String record = br.readLine();
+				String[] count = record.split("\t");
+				nb.weight.put(count[0]+":"+i,Double.parseDouble(count[1]));
+			}
+			br.close();
+		}
+		//Read Test Data
+		br = new BufferedReader(new FileReader(args[2]));
 		while(br.ready()){
 			String doc = br.readLine();		
 			nb.testDoc(doc);
