@@ -12,10 +12,17 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
 
 import org.json.JSONObject;
+
+import com.aliasi.tokenizer.EnglishStopTokenizerFactory;
+import com.aliasi.tokenizer.LowerCaseTokenizerFactory;
+import com.aliasi.tokenizer.PorterStemmerTokenizerFactory;
+import com.aliasi.tokenizer.Tokenizer;
+import com.aliasi.tokenizer.TokenizerFactory;
 
 public class LRSgd {
 
@@ -23,7 +30,9 @@ public class LRSgd {
   // private String fileTestPath = "hw5/abstract.tiny.test";
   // private String resPath = "hw5/tiny.res";
   private String fileTrainPath = "data/trend.train";
+
   private String fileTestPath = "data/trend.test";
+
   private String resPath = "data/res/res.txt";
 
   private String LCLPath = "data/lcl.txt";
@@ -43,11 +52,13 @@ public class LRSgd {
   private static final String[] lbs = { "1", "2", "3", "4", "5", "6" };
 
   private double lambda = 0.5;
+  
+  private TokenizerFactory tokFactory;
 
-  public LRSgd() {
-    W = new double[NUM_LBS][R];
-    Wold = new double[NUM_LBS][R];
-  }
+//  public LRSgd() {
+//    W = new double[NUM_LBS][R];
+//    Wold = new double[NUM_LBS][R];
+//  }
 
   public LRSgd(String ftrain, String ftest, double mu, int R, int T) {
     fileTrainPath = ftrain;
@@ -57,6 +68,11 @@ public class LRSgd {
     this.T = T;
     W = new double[NUM_LBS][R];
     Wold = new double[NUM_LBS][R];
+    
+    tokFactory = new NormalizedTokenizerFactory();
+    tokFactory = new LowerCaseTokenizerFactory(tokFactory);
+    tokFactory = new EnglishStopTokenizerFactory(tokFactory);
+    tokFactory = new PorterStemmerTokenizerFactory(tokFactory);
   }
 
   protected double sigmoid(double score) {
@@ -74,14 +90,14 @@ public class LRSgd {
       // for each iteration
       for (int t = 1; t <= T; t++) {
         lambda = yita / (t * t); // lambda decreases along iteration
-        
+
         int k = 0;
         int[] A = new int[R];
 
         GZIPInputStream gzip = new GZIPInputStream(new FileInputStream(fileTrainPath));
         BufferedReader br = new BufferedReader(new InputStreamReader(gzip));
-        
-//        BufferedReader br = new BufferedReader(new FileReader(fileTrainPath));
+
+        // BufferedReader br = new BufferedReader(new FileReader(fileTrainPath));
         String line = null;
 
         while ((line = br.readLine()) != null) {
@@ -95,7 +111,8 @@ public class LRSgd {
 
           // TODO: add tokenizer
           String text = json.getString("text");
-          String[] words = text.split(" ");
+          String[] words = tokenizeDoc(text);
+          //String[] words = text.split(" ");
 
           HashMap<Integer, Integer> V = new HashMap<Integer, Integer>();
           for (int j = 0; j < words.length; j++) {
@@ -121,15 +138,15 @@ public class LRSgd {
             // Pi[yk] = 1.0 / (1 + Math.pow(Math.E, -vw));
             Pi[yk] = sigmoid(vw);
             // lcl
-//            int yik = yset.contains(lbs[yk]) ? 1 : 0;
-//            if (yik == 1)
-//              totalLCL += Math.log(Pi[yk]);
-//            else
-//              totalLCL += Math.log(1 - Pi[yk]);
+            // int yik = yset.contains(lbs[yk]) ? 1 : 0;
+            // if (yik == 1)
+            // totalLCL += Math.log(Pi[yk]);
+            // else
+            // totalLCL += Math.log(1 - Pi[yk]);
           }
-//          // output lcl
-//          System.out.println(String.format("iter: %d\t lcl: %f", t, totalLCL));
-//          bw.write(String.format("iter: %d\t lcl: %f\n", t, totalLCL));
+          // // output lcl
+          // System.out.println(String.format("iter: %d\t lcl: %f", t, totalLCL));
+          // bw.write(String.format("iter: %d\t lcl: %f\n", t, totalLCL));
 
           k++;
 
@@ -159,20 +176,20 @@ public class LRSgd {
         }
 
         br.close();
-        
+
         // check if W is converging
         double diff = 0.0;
-        for(int i = 0; i < W.length; i++)
-          for(int j = 0; j < W[0].length; j++) {
+        for (int i = 0; i < W.length; i++)
+          for (int j = 0; j < W[0].length; j++) {
             diff += Math.abs(W[i][j] - Wold[i][j]);
             Wold[i][j] = W[i][j];
-          } 
-        
+          }
+
         diff /= W.length * W[0].length;
         System.out.println(String.format("it:%d\tw diff:%f", t, diff));
-        
+
         // output progress
-        //System.out.print(".");
+        // System.out.print(".");
       }
 
       // bw.close();
@@ -188,8 +205,8 @@ public class LRSgd {
     try {
       GZIPInputStream gzip = new GZIPInputStream(new FileInputStream(fileTestPath));
       br = new BufferedReader(new InputStreamReader(gzip));
-      
-      //br = new BufferedReader(new FileReader(fileTestPath));
+
+      // br = new BufferedReader(new FileReader(fileTestPath));
       bw = new BufferedWriter(new FileWriter(resPath));
       String line = null;
       long ncorr = 0L, ntest = 0L;
@@ -203,27 +220,28 @@ public class LRSgd {
         JSONObject json = new JSONObject(strs[2]);
         // TODO: add tokenizer
         String text = json.getString("text");
-        String[] tokens = text.split(" ");
+        String[] tokens = tokenizeDoc(text);
+        //String[] tokens = text.split(" ");
         lb = strs[1];
-        //System.out.println(++cnt + "\tlbpre:" + lbpre + "\tlb:" + lb);
-        
+        // System.out.println(++cnt + "\tlbpre:" + lbpre + "\tlb:" + lb);
+
         // 1st time
-        if(lbpre == null) {
+        if (lbpre == null) {
           lbpre = strs[1];
-          for(String tk : tokens)
+          for (String tk : tokens)
             words.add(tk);
         }
         // same hashtag
         else if (lbpre == lb) {
-          for(String tk : tokens)
+          for (String tk : tokens)
             words.add(tk);
-        } 
+        }
         // diff hashtag, test
         else {
-          ntest += NUM_LBS; // 6 classification results
+          ntest++; // 1 classification results
 
-          String gdlb = lbpre;  // golden label
-          
+          String gdlb = lbpre; // golden label
+
           HashMap<Integer, Integer> V = new HashMap<Integer, Integer>();
           for (int j = 0; j < words.size(); j++) {
             int h = words.get(j).hashCode() % R;
@@ -242,7 +260,7 @@ public class LRSgd {
           StringBuilder sb = new StringBuilder();
           sb.append("[" + gdlb + "]");
 
-          double pmax = 0.0; 
+          double pmax = 0.0;
           String lbmax = "";
           for (int yk = 0; yk < Pi.length; yk++) {
             double vw = 0.0;
@@ -253,38 +271,38 @@ public class LRSgd {
             Pi[yk] = sigmoid(vw);
             sb.append(String.format("\t%s\t%f", lbs[yk], Pi[yk]));
 
-            if(Pi[yk] > pmax) {
+            if (Pi[yk] > pmax) {
               pmax = Pi[yk];
               lbmax = lbs[yk];
             }
-//            // true positive
-//            if (Pi[yk] > 0.5 && gdlb.equals(lbs[yk]))
-//              ncorr++;
-//            // true negative
-//            else if (Pi[yk] < 0.5 && !gdlb.equals(lbs[yk]))
-//              ncorr++;
+            // // true positive
+            // if (Pi[yk] > 0.5 && gdlb.equals(lbs[yk]))
+            // ncorr++;
+            // // true negative
+            // else if (Pi[yk] < 0.5 && !gdlb.equals(lbs[yk]))
+            // ncorr++;
           }
-          
-          if(gdlb.equals(lbmax))
+
+          if (gdlb.equals(lbmax))
             ncorr++;
 
           bw.write("pred:" + lbmax + "\t" + sb.toString() + "\n");
           System.out.println("pred:" + lbmax + "\t" + sb.toString());
-          
+
           // for next iteration
           lbpre = lb;
           words = new ArrayList<String>();
-          for(String tk : tokens)
+          for (String tk : tokens)
             words.add(tk);
         }
       }
-      
+
       // last test instance
-      if(lbpre == lb) {
+      if (lbpre == lb) {
         ntest += NUM_LBS; // 6 classification results
 
-        String gdlb = lbpre;  // golden label
-        
+        String gdlb = lbpre; // golden label
+
         HashMap<Integer, Integer> V = new HashMap<Integer, Integer>();
         for (int j = 0; j < words.size(); j++) {
           int h = words.get(j).hashCode() % R;
@@ -303,7 +321,7 @@ public class LRSgd {
         StringBuilder sb = new StringBuilder();
         sb.append("[" + gdlb + "]");
 
-        double pmax = 0.0; 
+        double pmax = 0.0;
         String lbmax = "";
         for (int yk = 0; yk < Pi.length; yk++) {
           double vw = 0.0;
@@ -314,17 +332,17 @@ public class LRSgd {
           Pi[yk] = sigmoid(vw);
           sb.append(String.format("\t%s\t%f", lbs[yk], Pi[yk]));
 
-          assert gdlb!=null : lb;
-          
-          if(Pi[yk] > pmax) {
+          assert gdlb != null : lb;
+
+          if (Pi[yk] > pmax) {
             pmax = Pi[yk];
             lbmax = lbs[yk];
           }
         }
 
-        if(gdlb.equals(lbmax))
+        if (gdlb.equals(lbmax))
           ncorr++;
-        //bw.write("pred:" + lbmax + "\t" + sb.toString() + "\n");
+        // bw.write("pred:" + lbmax + "\t" + sb.toString() + "\n");
         System.out.println("pred:" + lbmax + "\t" + sb.toString());
       }
 
@@ -383,6 +401,23 @@ public class LRSgd {
     // System.out.println("Load model Done!");
   }
 
+  public String[] tokenizeDoc(String tweet) {
+    List<String> tokens = new ArrayList<String>();
+    
+    char[] chars = tweet.toCharArray();
+    Tokenizer tokenizer = tokFactory.tokenizer(chars, 0, chars.length);
+    String token;
+    while ((token = tokenizer.nextToken()) != null) {
+      token = token.toLowerCase();
+      tokens.add(token);
+    }
+    
+    String[] words = new String[tokens.size()];
+    for(int i = 0; i < tokens.size(); i++)
+      words[i] = tokens.get(i);
+    return words;
+  }
+
   // public static void main(String[] args) {
   // // TODO Auto-generated method stub
   //
@@ -391,21 +426,23 @@ public class LRSgd {
   // lr.saveLRModel();
   // lr.test();
   // }
+
   /**
    * @param args
    */
-   public static void main(String[] args) {
-     // TODO Auto-generated method stub
-     if (args.length != 6) {
-       System.out.println("Usage: LRSgd <trainFilePath> <testFilePath> <modelFilePath> <mu> <R/DicSize> <#iteration>");
-       return;
-     }
-    
-     LRSgd lr = new LRSgd(args[0], args[1], Double.parseDouble(args[3]), Integer.parseInt(args[4]),
-               Integer.parseInt(args[5]));
-     lr.train();
-     lr.saveLRModel(args[2]);
-     lr.test();
-   }
+  public static void main(String[] args) {
+    // TODO Auto-generated method stub
+    if (args.length != 6) {
+      System.out
+              .println("Usage: LRSgd <trainFilePath> <testFilePath> <modelFilePath> <mu> <R/DicSize> <#iteration>");
+      return;
+    }
+
+    LRSgd lr = new LRSgd(args[0], args[1], Double.parseDouble(args[3]), Integer.parseInt(args[4]),
+            Integer.parseInt(args[5]));
+    lr.train();
+    lr.saveLRModel(args[2]);
+    lr.test();
+  }
 
 }
