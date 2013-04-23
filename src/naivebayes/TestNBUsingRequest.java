@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
+import org.json.JSONObject;
+
 import tokenweight.NormalizedTokenizerFactory;
 
 import com.aliasi.tokenizer.EnglishStopTokenizerFactory;
@@ -56,42 +58,59 @@ public class TestNBUsingRequest {
 		}
 		return;
 	}
-	public void testDoc(String text){
-		ArrayList<String> cla = new ArrayList<String>();
-		if(text!=null){
-			//split class token with document
-			String[] attr = text.split("\t");
-			if(attr.length>1){
-				//deal with class
-				String[] classes = attr[0].split(",");
-				for(String s:classes){
-					cla.add(s);
-				}
-				//deal with tokens
-				Vector<String> tokens = tokenizeDoc(attr[1]);
-				Iterator<String> it = countY.keySet().iterator();
-				double p = -1000000;
-				String maxClass = "";
-				while(it.hasNext()){
-					String c = (String)it.next();
-					double prob = Math.log((double)(1+countY.get(c))/(double)(countY.size()+totalY));
-					for(String s:tokens){
-						prob = prob + calProb(c,s);
-					}
-					if(prob>p){
-						p = prob;
-						maxClass = c;
-					}
-					prob = 0;
-				}
-				totalTest++;
-				if(cla.contains(maxClass)) totalRight++;
-				String result;
-				result = "["+attr[0]+"]"+"\t"+maxClass+"\t"+p;
-				System.out.println(result);
-			}			
+	public void processTestData(String file) throws IOException{
+		BufferedReader br = new BufferedReader(new FileReader(file));
+		String tag = null;
+		String l = null;
+		StringBuffer sb = new StringBuffer();
+		int right = 0;
+		int total = 0;
+		while(br.ready()){
+			String doc = br.readLine();		
+			String[] attr = doc.split("\t");
+			String hashTag = attr[0];
+			String label = attr[1];
+			String jsonLine = attr[2];
+	    	JSONObject json = new JSONObject(jsonLine);
+	        String text = json.getString("text");
+	        if(tag!=null&&!hashTag.equals(tag)){
+	        	String c = testDoc(sb.toString().trim());
+	        	if(c.equals(l)) right++;
+	        	total++;
+	        }else{
+	        	tag = hashTag;
+	        	l = label;
+	        	sb.append(text+" ");
+	        } 
 		}
-		//countYToken.clear();
+    	String c = testDoc(sb.toString().trim());
+    	if(c.equals(l)) right++;
+    	total++;
+		br.close();
+		System.out.println("Precision:"+(double)right/total);
+	}
+	public String testDoc(String text){
+		if(text!=null){
+			Vector<String> tokens = tokenizeDoc(text);
+			Iterator<String> it = countY.keySet().iterator();
+			double p = -1000000;
+			String maxClass = "";
+			while(it.hasNext()){
+				String c = (String)it.next();
+				double prob = Math.log((double)(1+countY.get(c))/(double)(countY.size()+totalY));
+				for(String s:tokens){
+					prob = prob + calProb(c,s);
+				}
+				if(prob>p){
+					p = prob;
+					maxClass = c;
+				}
+				prob = 0;
+			}
+			return maxClass;		
+		}else{
+			return null;
+		}
 	}
 	/*
 	 * Tokenize the document into tokens
@@ -139,12 +158,8 @@ public class TestNBUsingRequest {
 			br.close();
 		}
 		//Read Test Data
-		br = new BufferedReader(new FileReader(args[2]));
-		while(br.ready()){
-			String doc = br.readLine();		
-			nb.testDoc(doc);
-		}
-		br.close();
+		nb.processTestData(args[2]);
+		
 		nb.precision = nb.totalRight/nb.totalTest;
 		System.out.println("Percent Correct: "+nb.precision);
 	}
