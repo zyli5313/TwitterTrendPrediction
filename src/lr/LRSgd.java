@@ -85,6 +85,9 @@ public class LRSgd {
     return 1 / (1 + exp);
   }
 
+  /**
+   * train for every tweets
+   * */
   public void train() {
     int badcnt = 0;
     try {
@@ -221,7 +224,7 @@ public class LRSgd {
       String line = null;
       long ncorr = 0L, ntest = 0L;
       int cnt = 0;
-      String lbpre = null, lb = null;
+      String htpre = null, ht = null, lb = null, lbpre = null;
       ArrayList<String> words = new ArrayList<String>();
 
       while ((line = br.readLine()) != null) {
@@ -239,17 +242,19 @@ public class LRSgd {
         String text = json.getString("text");
         String[] tokens = tokenizeDoc(text);
         //String[] tokens = text.split(" ");
+        ht = strs[0];
         lb = strs[1];
         // System.out.println(++cnt + "\tlbpre:" + lbpre + "\tlb:" + lb);
 
         // 1st time
-        if (lbpre == null) {
+        if (htpre == null) {
+          htpre = strs[0];
           lbpre = strs[1];
           for (String tk : tokens)
             words.add(tk);
         }
         // same hashtag
-        else if (lbpre == lb) {
+        else if (htpre.equals(ht)) {
           for (String tk : tokens)
             words.add(tk);
         }
@@ -286,7 +291,7 @@ public class LRSgd {
               vw += ven.getValue() * W[yk][ven.getKey()];
             // Pi[yk] = 1.0 / (1 + Math.pow(Math.E, -vw));
             Pi[yk] = sigmoid(vw);
-            sb.append(String.format("\t%s\t%f", lbs[yk], Pi[yk]));
+            sb.append(String.format("\t%s\t%e", lbs[yk], Pi[yk]));
 
             if (Pi[yk] > pmax) {
               pmax = Pi[yk];
@@ -307,6 +312,7 @@ public class LRSgd {
           System.out.println("pred:" + lbmax + "\t" + sb.toString());
 
           // for next iteration
+          htpre = ht;
           lbpre = lb;
           words = new ArrayList<String>();
           for (String tk : tokens)
@@ -315,8 +321,8 @@ public class LRSgd {
       }
 
       // last test instance
-      if (lbpre == lb) {
-        ntest += NUM_LBS; // 6 classification results
+      if (htpre.equals(ht)) {
+        ntest++; // 6 classification results
 
         String gdlb = lbpre; // golden label
 
@@ -347,9 +353,9 @@ public class LRSgd {
             vw += ven.getValue() * W[yk][ven.getKey()];
           // Pi[yk] = 1.0 / (1 + Math.pow(Math.E, -vw));
           Pi[yk] = sigmoid(vw);
-          sb.append(String.format("\t%s\t%f", lbs[yk], Pi[yk]));
+          sb.append(String.format("\t%s\t%e", lbs[yk], Pi[yk]));
 
-          assert gdlb != null : lb;
+          assert gdlb != null : ht;
 
           if (Pi[yk] > pmax) {
             pmax = Pi[yk];
