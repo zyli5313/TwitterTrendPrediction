@@ -197,6 +197,7 @@ public class PrepTimeSeriesFull extends Configured implements Tool {
       // 1stTime + \t + peakTime
       sb.append(keys[0] + "\t" + keymax + "\n");
       
+      // TODO data points is not alligned with date time
       for(int i = 0; i < keys.length; i++) {
         sb.append(map.get(keys[i]) + "\t");
       }
