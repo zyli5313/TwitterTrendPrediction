@@ -278,6 +278,9 @@ public class LRSgdTrainByLable {
       bw = new BufferedWriter(new FileWriter(resPath));
       String line = null;
       long ncorr = 0L, ntest = 0L;
+      int[] ntp = new int[NUM_LBS]; // # true positive
+      int[] nfn = new int[NUM_LBS];
+      int[] nfp = new int[NUM_LBS];
       int cnt = 0;
       String htpre = null, ht = null, lb = null, lbpre = null;
       ArrayList<String> words = new ArrayList<String>();
@@ -351,12 +354,13 @@ public class LRSgdTrainByLable {
               pmax = Pi[yk];
               lbmax = lbs[yk];
             }
-            // // true positive
-            // if (Pi[yk] > 0.5 && gdlb.equals(lbs[yk]))
-            // ncorr++;
-            // // true negative
-            // else if (Pi[yk] < 0.5 && !gdlb.equals(lbs[yk]))
-            // ncorr++;
+            // evaluate per classifier performance
+            if(gdlb.equals(lbs[yk]) && Pi[yk] > 0.5)
+              ntp[yk]++;
+            if(!gdlb.equals(lbs[yk]) && Pi[yk] > 0.5)
+              nfp[yk]++;
+            if(gdlb.equals(lbs[yk]) && Pi[yk] < 0.5)
+              nfn[yk]++;
           }
 
           if (gdlb.equals(lbmax))
@@ -415,6 +419,13 @@ public class LRSgdTrainByLable {
             pmax = Pi[yk];
             lbmax = lbs[yk];
           }
+          // evaluate per classifier performance
+          if(gdlb.equals(lbs[yk]) && Pi[yk] > 0.5)
+            ntp[yk]++;
+          if(!gdlb.equals(lbs[yk]) && Pi[yk] > 0.5)
+            nfp[yk]++;
+          if(gdlb.equals(lbs[yk]) && Pi[yk] < 0.5)
+            nfn[yk]++;
         }
 
         if (gdlb.equals(lbmax))
@@ -422,10 +433,24 @@ public class LRSgdTrainByLable {
         // bw.write("pred:" + lbmax + "\t" + sb.toString() + "\n");
         System.out.println("pred:" + lbmax + "\t" + sb.toString());
       }
+      
+      // micro-avarge over all testing instances
+      double precision = 0.0, recall = 0.0, fscore = 0.0, 
+              sumtp = 0.0, sumfn = 0.0, sumfp = 0.0;
+      for(int k = 0; k < NUM_LBS; k++) {
+        sumtp += ntp[k];
+        sumfn += nfn[k];
+        sumfp += nfp[k];
+      }
+      precision = sumtp / (sumtp + sumfp);
+      recall = sumtp / (sumtp + sumfn);
+      fscore = 2*precision*recall / (precision + recall);
+   
+      String resline = String.format("P:%.2f\tR:%.2f\tF:%.2f", precision, recall, fscore);
 
       System.out.println("bad cnt: " + badcnt);
-      String resline = String.format("Percent correct: %d/%d=%.1f%%", ncorr, ntest, (double) ncorr
-              / ntest * 100.0);
+//      String resline = String.format("Percent correct: %d/%d=%.1f%%", ncorr, ntest, (double) ncorr
+//              / ntest * 100.0);
       bw.write(resline + "\n");
       System.out.println(resline);
 

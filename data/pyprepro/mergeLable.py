@@ -1,7 +1,8 @@
 # extract hashtag from time series hashtag data
 
 flb = file('../label.txt', 'r')
-f = file('../trend.seriesFull', 'r')
+f = file('../trend.seriesFull.order', 'r')
+
 fout = file('../trendMergeFull.txt', 'w')
 
 while True:

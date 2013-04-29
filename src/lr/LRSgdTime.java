@@ -58,6 +58,7 @@ public class LRSgdTime {
 
   private String fileTrainPath = "data/trendMerge.txt";
   private String fileTestPath = "data/trendMergeFull.txt";
+//  private String fileTestPath = "data/trendMerge.txt";
   private List<TS> tsTrain; // time series for train
   private List<TS> tsTest;  // time series for test
 
@@ -71,7 +72,7 @@ public class LRSgdTime {
 
   private static final int NUM_LBS = 6;
 
-  private int interval = 20, T = 10;
+  private int interval = 128, T = 10;
 
   private static final double yita = 0.5, overflow = 20;
 
@@ -290,7 +291,7 @@ public class LRSgdTime {
           }
 
         diff /= W.length * W[0].length;
-        System.out.println(String.format("it:%d\tw diff:%f\tsum:%f", t, diff, sum));
+        //System.out.println(String.format("it:%d\tw diff:%f\tsum:%f", t, diff, sum));
 
         // output progress
         // System.out.print(".");
@@ -300,7 +301,7 @@ public class LRSgdTime {
     } catch (IOException e) {
       e.printStackTrace();
     }
-    System.out.println("Training Done! bad cnt:" + badcnt);
+    //System.out.println("Training Done! bad cnt:" + badcnt);
   }
 
   public void test() {
@@ -308,8 +309,10 @@ public class LRSgdTime {
     try {
       // br = new BufferedReader(new FileReader(fileTestPath));
       bw = new BufferedWriter(new FileWriter(resPath));
-      long ncorr = 0L, ntest = 0L;
-      int cnt = 0;
+      int[] ntp = new int[NUM_LBS]; // # true positive
+      int[] nfn = new int[NUM_LBS];
+      int[] nfp = new int[NUM_LBS];
+      int ntest = 0, ncorr = 0;
 
       for(int i = 0; i < tsTest.size(); i++) {
         TS ts = tsTest.get(i);
@@ -323,7 +326,8 @@ public class LRSgdTime {
         if(ts.vals.length < interval)
           continue;
         int startIdx = detectJump(ts);  // jump start point
-
+//        int startIdx = 0;
+        
         // calc Pik
         double[] Pi = new double[NUM_LBS];
         // ArrayList<String> predLbs = new ArrayList<String>();
@@ -345,18 +349,39 @@ public class LRSgdTime {
             pmax = Pi[yk];
             lbmax = lbs[yk];
           }
+          
+          // evaluate per classifier performance
+          if(gdlb.equals(lbs[yk]) && Pi[yk] > 0.5)
+            ntp[yk]++;
+          if(!gdlb.equals(lbs[yk]) && Pi[yk] > 0.5)
+            nfp[yk]++;
+          if(gdlb.equals(lbs[yk]) && Pi[yk] < 0.5)
+            nfn[yk]++;
         }
 
         if (gdlb.equals(lbmax))
           ncorr++;
 
-        bw.write("pred:" + lbmax + "\t" + sb.toString() + "\n");
-        System.out.println("pred:" + lbmax + "\t" + sb.toString());
+//        bw.write("pred:" + lbmax + "\t" + sb.toString() + "\n");
+//        System.out.println("pred:" + lbmax + "\t" + sb.toString());
 
       }
+      
+      // micro-avarge over all testing instances
+      double precision = 0.0, recall = 0.0, fscore = 0.0, 
+              sumtp = 0.0, sumfn = 0.0, sumfp = 0.0;
+      for(int k = 0; k < NUM_LBS; k++) {
+        sumtp += ntp[k];
+        sumfn += nfn[k];
+        sumfp += nfp[k];
+      }
+      precision = sumtp / (sumtp + sumfp);
+      recall = sumtp / (sumtp + sumfn);
+      fscore = 2*precision*recall / (precision + recall);
    
-      String resline = String.format("Percent correct: %d/%d=%.1f%%", ncorr, ntest, (double) ncorr
-              / ntest * 100.0);
+//      String resline = String.format("Percent correct: %d/%d=%.1f%%", ntp, ntest, (double) ncorr
+//              / ntest * 100.0);
+      String resline = String.format("P:%.2f\tR:%.2f\tF:%.2f", precision, recall, fscore);
       bw.write(resline + "\n");
       System.out.println(resline);
 
@@ -430,23 +455,23 @@ public class LRSgdTime {
     return words;
   }
 
-//   public static void main(String[] args) {
-//     LRSgdTime lr = new LRSgdTime();
-//     for(int i = 1; i < 129; i++) {
-//       System.out.print("itv: " + i);
-//       lr.interval = i;
-//       lr.train();
-//       //lr.saveLRModel();
-//       lr.test();
-//     }
-//   }
-   
    public static void main(String[] args) {
      LRSgdTime lr = new LRSgdTime();
-     lr.train();
-     lr.saveLRModel();
-     lr.test();
+     for(int i = 1; i < 129; i++) {
+       System.out.print("itv: " + i + "\t");
+       lr.interval = i;
+       lr.train();
+       //lr.saveLRModel();
+       lr.test();
+     }
    }
+   
+//   public static void main(String[] args) {
+//     LRSgdTime lr = new LRSgdTime();
+//     lr.train();
+//     lr.saveLRModel();
+//     lr.test();
+//   }
 
   /**
    * @param args

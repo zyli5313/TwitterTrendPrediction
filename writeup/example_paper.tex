@@ -89,7 +89,7 @@ including references).
 
 \section{Method}
 
-Twitter trends are measured by the activity of Twitter hashtags or topics. In our work, we use the activity of hashtag to measure Twitter trend. We want to predict the future trend of a particular hashtag/topic based on either content or some previous temporal information from tweets containing that hashtag. For example, we want to predict future trend of hashtag "\#protest" based on some previous tweets containing that hashtag, like \texttt{"RT Iranian women must liberate themselves http://rurl.org/1rlv \#protest \#nytimes"}.
+Twitter trends are measured by the activity of Twitter hashtags or topics. In our work, we use the activity of hashtag to measure Twitter trend. We want to predict the future trend of an emerging hashtag/topic based on either content or some previous temporal information from tweets containing that hashtag. For example, we want to predict future trend of hashtag "\#protest" based on some previous tweets containing that hashtag, like \texttt{"RT Iranian women must liberate themselves http://rurl.org/1rlv \#protest \#nytimes"}.
 
 The problem can be approached as a supervised learning problem. We first assign each hashtag a trending pattern based on its time series. Although this problem is a supervised learning problem, we label the instances through clustering. From then on, we can train a classifier based on either text content or time series from hashtag histogram. And we could then classify the hashtag to different patterns using our classifier. 
 
@@ -99,6 +99,21 @@ In our paper, we have used K-SC algorithm to do Trend Clustering of time series 
 
 \subsection{Trend Clustering}
 
+We do Trend Clustering mainly to label the data, which assign a label to a time series according to which cluster it belongs. We use these labeled data to do training and testing on our classifiers. 
+
+We use the K-SC algorithm \cite{Yang11} to do clustering of the 128 hours time series with peak located at 1/3 of the 128 hours. This algorithm is very similar to K-means algorithm. It has for each data points calculate which nearest cluster centroid it belongs and then compute the new cluster centroid again. The only two differences with K-means are K-SC uses the special designed similarity metric, which is similar to Time Wrapping Distance (compute distance after shifting and scaling). Another difference is K-SC uses a new method to compute cluster centroid, which is essentially select the centroid that minimize the squared distance over all data points to their closest centroid using the new similarity metric.     
+
+We choose to K=6 and the clustering result in Figure~\ref{six-cluster}
+
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{sixClusters}}
+\caption{All model performance using different metrics.}
+\label{six-cluster}
+\end{center}
+\vskip -0.2in
+\end{figure} 
 
 \subsection{Trend Prediction}
 
@@ -132,9 +147,9 @@ Since we have clustered the time series using the 128 hours time series, placing
 
 We always choose the interval prior to a trend (sudden jump in time series) to train and test, since we want to predict the future pattern of trend as quickly as possible with least amount of previous known data. Therefore, the problem becomes to detect trend and use the interval of time series when the trend just begin gaining popularity to train and test our classifier. We can then try to solve the transformed problems with two assumptions here: predict trend patterns with known trend and predict trend patterns with unknown trend. 
 
-{\bf Predict Trend Patterns with Known Trend:} We use the only trend that leads to peak (highest) in time series as the best trend as the interval for training and testing. With known most salient trend, we could get more good training instances and thus good classifier which leads to better testing results.
+{\bf Predict Trend Patterns with Known Trend:} We use the only trend that leads to peak (sudden jump in highest time series globally) in time series as the best trend as the interval for training and testing. With known most salient trend, we could get more good training instances and thus good classifier which leads to better testing results.
 
-{\bf Predict Trend Patterns with Unknown Trend:} We now need to detect a relative good trend by our trend detection algorithm. The detection algorithm needs to find real potential trend instead of small fluctuations. The algorithm is parametric that it needs parameter tuning to avoid this. 
+{\bf Predict Trend Patterns with Unknown Trend:} We now need to detect a relative good trend (sudden jump in highest time series locally) by our trend detection algorithm. The detection algorithm needs to find real potential trend instead of small fluctuations. The algorithm is parametric that it needs parameter tuning to avoid this. 
 
 
 \subsubsection{Time Series Majority Voting Prediction?}
@@ -145,17 +160,17 @@ We always choose the interval prior to a trend (sudden jump in time series) to t
 
 \subsection{Data Preparation}
 
-We extract nearly 200 million (?) tweets from Brendan's "Gardenhose" archive from June 2009 to February 2010 as same time period as described in the paper \cite{Yang11}. And we further extract all the tweets containing the top 998 most frequently appeared hashtags. 
+We extract nearly 200 million tweets from Brendan's "Gardenhose" archive from June 2009 to February 2010 as same time period as described in the paper \cite{Yang11}. And we further extract 2.5 million all the tweets containing the top 998 most frequently appeared hashtags. This data size is ~600MB compressed and >3GB uncompressed.  
 
 Besides that, we also build our time series based on the number of tweets in each one hour unit. For the known peak time series, we build time series using the truncated time series of 128 hours with peak located at the 1/3 of the 128 hours. For the unknown peak time series, we build time series throughout the whole eight months. 
 
-\subsection{Content vs Temporal information used in training and testing}
+\subsection{Content (BOW) vs Temporal (Time Series)}
 
-We can see the final evaluation result from the table below. Note that ``BOW\_NB" and ``BOW\_LR" represents Naive Bayes and Logistic Regression using Bag-of-Word model respectively. ``TS\_LR\_KT" and ``TS\_LR\_UNKT" represents Logistic Regression with known trend and unknown trend using time series model respectively. The time series model only have trained and tested using only a interval of nine data points (first nine hours of a trend which the popularity is about to go up).  
+We can see from Table~\ref{tab-result} the final evaluation result from the table below. Note that ``BOW\_NB" and ``BOW\_LR" represents Naive Bayes and Logistic Regression using Bag-of-Word model respectively. ``TS\_LR\_KT" and ``TS\_LR\_UNKT" represents Logistic Regression with known trend and unknown trend using time series model respectively. The time series model only have trained and tested using only a interval of nine data points (first nine hours of a trend which the popularity is about to go up).  
 
 \begin{table}[t]
 \caption{Model performance using different metrics}
-\label{sample-table}
+\label{tab-result}
 \vskip 0.15in
 \begin{center}
 \begin{small}
@@ -166,11 +181,13 @@ We can see the final evaluation result from the table below. Note that ``BOW\_NB
 Model Name & Precision & Recall & F-measure \\
 \hline
 \abovespace
-bow\_nb   & 0 & 0 & 0 \\		
-bow\_lr & 0.34 & 0.13 & 0.19 \\		
-ts\_lr\_kt    & \textbf{0.57} & \textbf{0.57} & \textbf{0.57} \\		
+BOW\_NB   & 0.22 & 0.22 & 0.22 \\		
+BOW\_LR & 0.34 & 0.13 & 0.19 \\		
+TS\_LR\_KT    & \textbf{0.57} & \textbf{0.57} & \textbf{0.57} \\	
+TS\_LR\_UNKT   & 0.31 & 0.34 & 0.33     \\
+TS\_SM\_UNKT	& 0.19	& 0.19	& 0.19	\\
 \belowspace
-ts\_lr\_unkt   & 0.31 & 0.34 & 0.33     \\
+TS\_LR\_UNKT	& 0.31	& 0.34	& 0.33	\\
 \hline
 \end{tabular}
 \end{sc}
@@ -179,16 +196,27 @@ ts\_lr\_unkt   & 0.31 & 0.34 & 0.33     \\
 \vskip -0.1in
 \end{table}
 
-As we can see from the evaluation result, Logistic Regression (LR) classifier works better than Naive Bayes (NB) classifier in content based Bag-of-Word model. This is not surprising that LR works better than NB, since NB assume the oder of words does't not matter, namely independence among a sequence of words. 
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{allPerformance}}
+\caption{All model performance using different metrics.}
+\label{all-performance}
+\end{center}
+\vskip -0.2in
+\end{figure} 
 
-Comparing to the content based model, we see that the time series based model gives us way more better performance than content based model. The reason might be tweets content can only provide little information about the trend of the underlying topic they talk about. 
+
+As we can see from Figure~\ref{all-performance}, we can see that the time series based model gives us way more better performance than content based model (TS is much better than BOW). The reason might be tweets content can only provide little information about the trend of the underlying topic they talk about. Or we haven't found a better way to use the content data.
+
+Besides, Logistic Regression (LR) classifier works better than Naive Bayes (NB) classifier in content based Bag-of-Word model. This is not surprising that LR works better than NB, since NB assume the oder of words does't not matter, namely independence among a sequence of words. 
 
 
 \subsection{Known vs Unknown Trend}
 
-We can run our classification algorithm on both previous known trend (tested on 128 hours time series and regard the interval around peak as most salient trend) and unknown trend (tested on 8 months time series and detected most salient trend by our detection algorithm). We can see from the figure below that the Precision, Recall and F-measure became worse when we switch to use our own trend detection algorithm. 
+As shown in Figure~\ref{all-performance}, we can run our classification algorithm on both previous known trend (tested on 128 hours time series and regard the interval around peak as most salient trend) and unknown trend (tested on 8 months time series and detected most salient trend by our detection algorithm). We can see from the figure below that the Precision, Recall and F-measure became worse when we switch to use our own trend detection algorithm. 
 
-This indicates that with a better trend detection algorithm, we can use the real time streaming data to predict a trend and a future trending pattern to a specific hashtag/topic. 
+This indicates that with a better trend detection algorithm, we can use the real time streaming data to predict a trend and a future hottest emerging trending pattern to a specific hashtag/topic. 
 
 
 \section{Conclusion} 
