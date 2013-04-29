@@ -1,4 +1,4 @@
-\begin{thebibliography}{8}
+\begin{thebibliography}{9}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -50,5 +50,12 @@ Samuel, A.~L.
 \newblock Some studies in machine learning using the game of checkers.
 \newblock \emph{IBM Journal of Research and Development}, 3\penalty0
   (3):\penalty0 211--229, 1959.
+
+\bibitem[Yang \& Leskovec(2011)Yang and Leskovec]{Yang11}
+Yang, Jaewon and Leskovec, Jure.
+\newblock Patterns of temporal variation in online media.
+\newblock In \emph{Proceedings of the fourth ACM international conference on
+  Web search and data mining (WSDM 2011)}, pp.\  177--186, New York, NY, USA,
+  2011. ACM.
 
 \end{thebibliography}
