@@ -119,7 +119,21 @@ We choose to K=6 and the clustering result in Figure~\ref{six-cluster}
 
 For predicting Twitter trend, we can consider using both content information and temporal information as the clue for the trending activity.   
 
-\subsubsection{Bag-of-Word Naive Bayes Trend Prediction?}
+\subsubsection{Bag-of-Word Naive Bayes Trend Prediction}
+The Naive Bayes Method is the first one we come up with in this project. Since this is a classification problem and tweets are composed of words and tokens, the use of bag of word model is very intuitive. The Naive Bayes algorithm we implemented is similar to the one we did in homework. For the training set, each tweet has a label (1 to 6), so each of them can be treated as a training sample. We first utilize LingPipe to tokenize the tweets by considering lowercase, stemming, etc. Then with these separate tokens, we count the number of co-occurrence and other metrics needed to build the Naive Bayes model. The whole process was done very quickly and efficiently using Hadoop.
+After getting all the model parameters we need, we start working on the test data. The log likelihood of each test sample can be written as:
+\begin{equation} 
+(\prod_{j=1}^d  \frac{C(X_j=x_j \wedge Y=y')+mq_j}{C(Y=y')+m})\frac{C(Y=y')+mq_j}{C(Y=ANY)+m}
+\end{equation}
+Using this equation, we can easily classify our test tweets data into one of the six categories. But here we made some changes on the test process. We first combine several tweets of the same hashtag into one document, then apply the NB classifiers. The reason we did so is because the tweets are often very short, thus making the token distribution very sparse which may lead to bad result. 
+
+In addition to this traditional Naive Bayes method, we also take the weight of token into account. We believe that some of the words must be more important than others when apply to certain situations or categories. For example, people won't talk about Hurricane too often usually, but when we have a real Hurricane in the world, the world Hurricane becomes important. To discover such important tokens and give different weight on them, we first calculate both background and foreground token distributions, and use Chi-square method to find those important words. The Chi-Square method can be written as
+
+\begin{equation} 
+\frac{(fg-bg)^2}{bg}
+\end{equation}
+
+By using this model, we successfully find out those important words give certain cluster. For example, in cluster 3, the top 10 words include mac, apple, ipad, ipod, chrome, android, etc., which are all relevant to IT fields. Though this token weight makes sense, when apply to Naive Bayes Model, we didn't find good improvement on the final results. Maybe our combine method is not good enough, which we may dig deeper later.
 
 \subsubsection{Bag-of-Word Logistic Regression Trend Prediction}
 
