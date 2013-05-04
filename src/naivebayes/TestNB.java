@@ -61,8 +61,13 @@ public class TestNB {
 		String tag = null;
 		String l = null;
 		StringBuffer sb = new StringBuffer();
-		int right = 0;
-		int total = 0;
+		int[] tp = new int[6];
+		int[] fp = new int[6];
+		int[] tn = new int[6];
+		int[] fn = new int[6];
+		double precision = 0;
+		double recall = 0;
+		double F = 0;
 		while(br.ready()){
 			count++;
 			String doc = br.readLine();	
@@ -81,8 +86,11 @@ public class TestNB {
 	        	String c = testDoc(sb.toString().trim());
 	        	System.out.println(tag+" "+c+" "+l);
 	        	sb = new StringBuffer();
-	        	if(c.equals(l)) right++;
-	        	total++;
+	        	if(c.equals(l))  tp[Integer.parseInt(c)-1]++;
+	        	else {
+	        		fp[Integer.parseInt(c)-1]++;
+	        		fn[Integer.parseInt(l)-1]++;
+	        	}    	
 	        	count = 0;
 	        }
 	        tag = hashTag;
@@ -90,10 +98,20 @@ public class TestNB {
 	        sb.append(text+" ");
 		}
     	String c = testDoc(sb.toString().trim());
-    	if(c.equals(l)) right++;
-    	total++;
+    	if(c.equals(l))  tp[Integer.parseInt(c)]++;
+    	else {
+    		fp[Integer.parseInt(c)]++;
+    		fn[Integer.parseInt(l)]++;
+    	}   
 		br.close();
-		System.out.println("Precision:"+right+"/"+total+"="+(double)right/total);
+		for(int i=0;i<6;i++){
+			precision = precision + (double)tp[i]/(tp[i]+fp[i]);
+			recall = recall + (double)tp[i]/(tp[i]+fn[i]);
+			F = 2*precision*recall/(precision+recall);
+		}
+		System.out.println("Precision:"+precision/6);
+		System.out.println("Recall:"+recall/6);
+		System.out.println("F:"+F/6);
 	}
 	public String testDoc(String text){
 		if(text!=null){
@@ -104,11 +122,11 @@ public class TestNB {
 			while(it.hasNext()){
 				String c = (String)it.next();
 				double prob = Math.log((double)(1+countY.get(c))/(double)(countY.size()+totalY));
-				System.out.println(prob);
+				//System.out.println(prob);
 				for(String s:tokens){
 					prob = prob + calProb(c,s);
 				}
-				System.out.println(prob);
+				//System.out.println(prob);
 				if(prob>p){
 					p = prob;
 					maxClass = c;

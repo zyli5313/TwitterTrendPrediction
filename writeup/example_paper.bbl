@@ -1,9 +1,17 @@
-\begin{thebibliography}{9}
+\begin{thebibliography}{11}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Asur et~al.(2011)Asur, Huberman, Szab—, and
+  Wang]{journals/corr/abs-1102-1402}
+Asur, Sitaram, Huberman, Bernardo~A., Szab—, G‡bor, and Wang, Chunyan.
+\newblock Trends in social media : Persistence and decay.
+\newblock \emph{CoRR}, abs/1102.1402, 2011.
+\newblock URL
+  \url{http://dblp.uni-trier.de/db/journals/corr/corr1102.html#abs-1102-1402}.
 
 \bibitem[Author(2011)]{anonymous}
 Author, N.~N.
@@ -44,6 +52,12 @@ Newell, A. and Rosenbloom, P.~S.
 \newblock In Anderson, J.~R. (ed.), \emph{Cognitive Skills and Their
   Acquisition}, chapter~1, pp.\  1--51. Lawrence Erlbaum Associates, Inc.,
   Hillsdale, NJ, 1981.
+
+\bibitem[Nikolov(2012)]{nikolov2012trend}
+Nikolov, Stanislav.
+\newblock \emph{Trend or No Trend: A Novel Nonparametric Method for Classifying
+  Time Series}.
+\newblock PhD thesis, Massachusetts Institute of Technology, 2012.
 
 \bibitem[Samuel(1959)]{Samuel59}
 Samuel, A.~L.

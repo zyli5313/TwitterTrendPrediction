@@ -82,8 +82,10 @@ including references).
 
 
 \section{Related Work} 
-
-
+The paper \cite{nikolov2012trend} introduced a new approach to detecting Twitter trends in a nonparametric method. It presented a general time series analysis method that can be used to detect the future trend on twitter. This paper used both positive trending examples and negative, or non-trending example to vote for the current observation sequence. Then based on the voting result to find out whether it's a trend or not. The result of this paper is fairly good. In 79\% percent of cases, this paper detected trending topics earlier than Twitter (1.43 hours earlier), and it managed to keep an error rate of around 95\% (4\% false positive rate, 95\% true positive rate). As this paper's experiment result shows that it is fairly good to use time series data to predict trends in twitter, we believe the time series prior of the peak would be a good indictor of the trend pattern.
+ 
+The paper \cite{journals/corr/abs-1102-1402} made a detail analysis on different kinds of factors that may affect the persistence and decay of twitter trend based on history data and experiments. It showed that the resonance of the content with the users of the social network plays a major role in causing trends.It also demonstrate empirically how factors such
+as user activity and number of followers do not contribute strongly to trend creation and its propagation. Based on the conclusion of this paper, we believe that content of twitter activity has a major influence to the type of twitter trends.
 \section{Dataset} 
 
 
@@ -119,7 +121,21 @@ We choose to K=6 and the clustering result in Figure~\ref{six-cluster}
 
 For predicting Twitter trend, we can consider using both content information and temporal information as the clue for the trending activity.   
 
-\subsubsection{Bag-of-Word Naive Bayes Trend Prediction?}
+\subsubsection{Bag-of-Word Naive Bayes Trend Prediction}
+The Naive Bayes Method is the first one we come up with in this project. Since this is a classification problem and tweets are composed of words and tokens, the use of bag of word model is very intuitive. The Naive Bayes algorithm we implemented is similar to the one we did in homework. For the training set, each tweet has a label (1 to 6), so each of them can be treated as a training sample. We first utilize LingPipe to tokenize the tweets by considering lowercase, stemming, etc. Then with these separate tokens, we count the number of co-occurrence and other metrics needed to build the Naive Bayes model. The whole process was done very quickly and efficiently using Hadoop.
+After getting all the model parameters we need, we start working on the test data. The log likelihood of each test sample can be written as:
+\begin{equation} 
+(\prod_{j=1}^d  \frac{C(X_j=x_j \wedge Y=y')+mq_j}{C(Y=y')+m})\frac{C(Y=y')+mq_j}{C(Y=ANY)+m}
+\end{equation}
+Using this equation, we can easily classify our test tweets data into one of the six categories. But here we made some changes on the test process. We first combine several tweets of the same hashtag into one document, then apply the NB classifiers. The reason we did so is because the tweets are often very short, thus making the token distribution very sparse which may lead to bad result. 
+
+In addition to this traditional Naive Bayes method, we also take the weight of token into account. We believe that some of the words must be more important than others when apply to certain situations or categories. For example, people won't talk about Hurricane too often usually, but when we have a real Hurricane in the world, the world Hurricane becomes important. To discover such important tokens and give different weight on them, we first calculate both background and foreground token distributions, and use Chi-square method to find those important words. The Chi-Square method can be written as
+
+\begin{equation} 
+\frac{(fg-bg)^2}{bg}
+\end{equation}
+
+By using this model, we successfully find out those important words give certain cluster. For example, in cluster 3, the top 10 words include mac, apple, ipad, ipod, chrome, android, etc., which are all relevant to IT fields. Though this token weight makes sense, when apply to Naive Bayes Model, we didn't find good improvement on the final results. Maybe our combine method is not good enough, which we may dig deeper later.
 
 \subsubsection{Bag-of-Word Logistic Regression Trend Prediction}
 
@@ -139,6 +155,49 @@ y^l =\arg\max_i  \sum_j w_{ij} x_j^l\label{eq:lrtest}
 
 where $w_{ij}$ is the $i$th classifier's $j$th element in weight vector, $y^l$ is the predicted class label for $l$th testing instance, $x_j^l$ is the $j$th word (feature after hash trick) in $l$th testing document. 
 
+\subsubsection{Time Series Similarity Measurement}
+After working on content based measurement of  Twitter trend, we turn to use temporal information with hashtag to classify and predict the type of Twitter trend. Based on the former research\cite{nikolov2012trend} about the twitter trend,
+we believe time series prior of the peak would be a good indictor of the trend pattern. So we add this part time series information to do classification and prediction.
+Different from \cite{nikolov2012trend}, we not only need to predict if the sequence of tweets will be a trend, but also decide which trend pattern it would be. The meaning of doing this is find the spread pattern of twitter trend before the trend reaches its peak.  Because of time limitation, we applied a parametric model to predict and classify the trend pattern instead of using a nonparametric prediction. The whole process could be divided into two steps. Trend prediction and Trend classification.
+
+The trend prediction is find the twitter activity that could become a trend. We can assume that a normal trend model of tweet activity is roughly constant with occasional jumps. So the detection process is similar with a filter, which is used to filter the occasional jump and find the true jump that become a twitter trend.
+
+Here we define a trend by two variables, jump rate and popularity duration. Jump rate is 
+\begin{equation} 
+\frac{\alpha * standard variance}{mean}
+\end{equation}
+The standard variance and mean refer to the twitter activity of the according time interval.
+Popularity duration is the total volume in a time interval. If the popularity duration is beta times higher than the mean popularity duration value. We will consider this is a trend. As this is a parametric model, alpha and beta needs to be estimated by experiment. When monitoring the twitter activity, we use a sliding window to check if current trend would become a twitter trend. A acceleration step applied here that we don't need to compute the parametric model every hour but only when the twitter activity has a large increase. 
+The above detection process is illustrated in Figure~\ref{imgjump}.
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{jump}}
+\caption{The detection of a big jump}
+\label{imgjump}
+\end{center}
+\vskip -0.2in
+\end{figure} 
+When the sliding window comes  to a beginning of trend, we can see in the red box, the jump rate and popularity duration is satisfied by the parametric model. We will consider this is a big jump, which imply the follow twitter activity will become a trend. Then we will come to the classification step to decide the type of the possible trend.
+
+In the above step, we already get the trend patterns. So we apply a similarity measurement to classify the pattern of possible trend. As this twitter time series activity is discrete data, we compute the similarity of current twitter activity to each patterns for each hour. In another words, each hour in the time interval will vote for each trend pattern based on similarity between the instance in detected time interval and trend patterns.
+The similarity is defined by a decaying exponential, in this form, the nearest time series data has more weights while the non-similar data has less weight. Similarity defined as follows:
+\begin{equation} 
+Similarity(instance, pattern) = e^{-d(i, p)}
+\end{equation}
+In the above equation, i means the time series data at time i. p means the detected pattern time series data in the according time i. d(i, p) is the euclidean distance between i and p. The similarity measurement process is illustrated in figure ~\ref{imgcmp}
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{compare}}
+\caption{Illustration of similarity measurement process}
+\label{imgcmp}
+\end{center}
+\vskip -0.2in
+\end{figure} 
+The left subfigure in figure~\ref{imgcmp} is a section of twitter activity of certain hashtag, which is the time series data of 8 month. We can see that there could be several small jumps leading up to a big jump. The right subfigure in figure~\ref{imgcmp} is a detected pattern of twitter trend, which is the time series data of 128 hours of all twitter activity in this pattern.  
+
+
 \subsubsection{Time Series Logistic Regression Trend Prediction}
 
 Although bag-of-words model can give us some hints about future trend, using content information to predict temporal pattern is somewhat limited. Because words alone are not always correlated with trend. Therefore, we use directly a time interval in time series (hashtag histogram) to predict the future trend pattern. 
@@ -152,7 +211,7 @@ We always choose the interval prior to a trend (sudden jump in time series) to t
 {\bf Predict Trend Patterns with Unknown Trend:} We now need to detect a relative good trend (sudden jump in highest time series locally) by our trend detection algorithm. The detection algorithm needs to find real potential trend instead of small fluctuations. The algorithm is parametric that it needs parameter tuning to avoid this. 
 
 
-\subsubsection{Time Series Majority Voting Prediction?}
+
 
 
 
@@ -220,12 +279,9 @@ This indicates that with a better trend detection algorithm, we can use the real
 
 
 \section{Conclusion} 
+Tweet content has a big connection with tweet trend patterns. But the key information for this is difficult to extract.  
+Temporal information is the direct representation of tweet trend and the time interval prior to a trend is a good indicator of future pattern of trend. 
 
-
-
-
-As in the past few years, ICML will rely exclusively on
-electronic formats for submission and review. 
 
 
 \subsection{Templates for Papers}
