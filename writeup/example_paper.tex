@@ -86,8 +86,13 @@ The paper \cite{nikolov2012trend} introduced a new approach to detecting Twitter
  
 The paper \cite{journals/corr/abs-1102-1402} made a detail analysis on different kinds of factors that may affect the persistence and decay of twitter trend based on history data and experiments. It showed that the resonance of the content with the users of the social network plays a major role in causing trends.It also demonstrate empirically how factors such
 as user activity and number of followers do not contribute strongly to trend creation and its propagation. Based on the conclusion of this paper, we believe that content of twitter activity has a major influence to the type of twitter trends.
+
+
 \section{Dataset} 
 
+We extract nearly 200 million tweets from Brendan's "Gardenhose" archive from June 2009 to February 2010 as same time period as described in the paper \cite{Yang11}. And we further extract 2.5 million all the tweets containing the top 998 most frequently appeared hashtags. This data size is about 600MB compressed and $>$3GB uncompressed.  
+
+Besides that, we also build our time series based on the number of tweets in each one hour unit. For the known peak time series, we build time series using the truncated time series of 128 hours with peak located at the 1/3 of the 128 hours. For the unknown peak time series, we build time series throughout the whole eight months. 
 
 \section{Method}
 
@@ -216,12 +221,6 @@ We always choose the interval prior to a trend (sudden jump in time series) to t
 
 
 \section{Experiment} 
-
-\subsection{Data Preparation}
-
-We extract nearly 200 million tweets from Brendan's "Gardenhose" archive from June 2009 to February 2010 as same time period as described in the paper \cite{Yang11}. And we further extract 2.5 million all the tweets containing the top 998 most frequently appeared hashtags. This data size is ~600MB compressed and >3GB uncompressed.  
-
-Besides that, we also build our time series based on the number of tweets in each one hour unit. For the known peak time series, we build time series using the truncated time series of 128 hours with peak located at the 1/3 of the 128 hours. For the unknown peak time series, we build time series throughout the whole eight months. 
 
 \subsection{Content (BOW) vs Temporal (Time Series)}
 
