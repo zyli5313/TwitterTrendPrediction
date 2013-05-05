@@ -68,12 +68,7 @@
 ]
 
 \begin{abstract} 
-There are three review cycles for ICML 2013, with full paper submissions 
-due on October 1, 2012; December 15, 2012; and February 15, 2013. Reviewing 
-will be blind to the identities of the authors, and therefore identifying
-information must not appear in any way in papers submitted for review. 
-Submissions must be in PDF, with an 8 page length limit (upto 9 pages 
-including references).
+Detecting Twitter Trend has great applicant values in real world, such as promoting political policies, avoiding rumors' transmission, etc.. Thus understanding the twitter trend patterns is very important. In this paper, we implemented several different methods including both content-based and time-series algorithm on classifying trend patterns. By doing experiments on large streaming twitter data, we discussed their effectiveness in achieving our goals.
 \end{abstract} 
 
 \section{Introduction}
@@ -82,7 +77,7 @@ including references).
 
 
 \section{Related Work} 
-The paper \cite{nikolov2012trend} introduced a new approach to detecting Twitter trends in a nonparametric method. It presented a general time series analysis method that can be used to detect the future trend on twitter. This paper used both positive trending examples and negative, or non-trending example to vote for the current observation sequence. Then based on the voting result to find out whether it's a trend or not. The result of this paper is fairly good. In 79\% percent of cases, this paper detected trending topics earlier than Twitter (1.43 hours earlier), and it managed to keep an error rate of around 95\% (4\% false positive rate, 95\% true positive rate). As this paper's experiment result shows that it is fairly good to use time series data to predict trends in twitter, we believe the time series prior of the peak would be a good indictor of the trend pattern.
+The paper \cite{nikolov2012trend} introduced a new approach to detect Twitter trends in a nonparametric method. It presented a general time series analysis method that can be used to detect the future trend on twitter. This paper used both positive trending examples and negative, or non-trending example to vote for the current observation sequence. Then based on the voting result to find out whether it's a trend or not. The result of this paper is fairly good. In 79\% percent of cases, this paper detected trending topics earlier than Twitter (1.43 hours earlier), and it managed to keep an error rate of around 95\% (4\% false positive rate, 95\% true positive rate). As this paper's experiment result shows that it is fairly good to use time series data to predict trends in twitter, we believe the time series prior of the peak would be a good indictor of the trend pattern.
  
 The paper \cite{journals/corr/abs-1102-1402} made a detail analysis on different kinds of factors that may affect the persistence and decay of twitter trend based on history data and experiments. It showed that the resonance of the content with the users of the social network plays a major role in causing trends.It also demonstrate empirically how factors such
 as user activity and number of followers do not contribute strongly to trend creation and its propagation. Based on the conclusion of this paper, we believe that content of twitter activity has a major influence to the type of twitter trends.
