@@ -1,4 +1,4 @@
-\begin{thebibliography}{9}
+\begin{thebibliography}{10}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -12,6 +12,13 @@ Achrekar, Harshavardhan, Gandhe, Avinash, Lazarus, Ross, Yu, Ssu-Hsin, and Liu,
 \newblock Predicting flu trends using twitter data.
 \newblock In \emph{Computer Communications Workshops (INFOCOM WKSHPS), 2011
   IEEE Conference on}, pp.\  702--707. IEEE, 2011.
+
+\bibitem[Altshuler et~al.(2012)Altshuler, Pan, and
+  Pentland]{altshuler2012trends}
+Altshuler, Yaniv, Pan, Wei, and Pentland, Alex~Sandy.
+\newblock Trends prediction using social diffusion models.
+\newblock In \emph{Social Computing, Behavioral-Cultural Modeling and
+  Prediction}, pp.\  97--104. Springer, 2012.
 
 \bibitem[Asur \& Huberman(2010)Asur and
   Huberman]{Asur:2010:PFS:1913793.1914092}
