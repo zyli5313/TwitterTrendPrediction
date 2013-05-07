@@ -1,9 +1,28 @@
-\begin{thebibliography}{3}
+\begin{thebibliography}{9}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Achrekar et~al.(2011)Achrekar, Gandhe, Lazarus, Yu, and
+  Liu]{achrekar2011predicting}
+Achrekar, Harshavardhan, Gandhe, Avinash, Lazarus, Ross, Yu, Ssu-Hsin, and Liu,
+  Benyuan.
+\newblock Predicting flu trends using twitter data.
+\newblock In \emph{Computer Communications Workshops (INFOCOM WKSHPS), 2011
+  IEEE Conference on}, pp.\  702--707. IEEE, 2011.
+
+\bibitem[Asur \& Huberman(2010)Asur and
+  Huberman]{Asur:2010:PFS:1913793.1914092}
+Asur, Sitaram and Huberman, Bernardo~A.
+\newblock Predicting the future with social media.
+\newblock In \emph{Proceedings of the 2010 IEEE/WIC/ACM International
+  Conference on Web Intelligence and Intelligent Agent Technology - Volume 01},
+  WI-IAT '10, pp.\  492--499, Washington, DC, USA, 2010. IEEE Computer Society.
+\newblock ISBN 978-0-7695-4191-4.
+\newblock \doi{10.1109/WI-IAT.2010.63}.
+\newblock URL \url{http://dx.doi.org/10.1109/WI-IAT.2010.63}.
 
 \bibitem[Asur et~al.(2011)Asur, Huberman, Szab—, and
   Wang]{journals/corr/abs-1102-1402}
@@ -13,11 +32,45 @@ Asur, Sitaram, Huberman, Bernardo~A., Szab—, G‡bor, and Wang, Chunyan.
 \newblock URL
   \url{http://dblp.uni-trier.de/db/journals/corr/corr1102.html#abs-1102-1402}.
 
+\bibitem[Irani et~al.(2010)Irani, Webb, Pu, and Li]{irani2010study}
+Irani, Danesh, Webb, Steve, Pu, Calton, and Li, Kang.
+\newblock Study of trend-stuffing on twitter through text classification.
+\newblock In \emph{Collaboration, Electronic messaging, Anti-Abuse and Spam
+  Conference (CEAS)}, 2010.
+
+\bibitem[Kawamae(2011)]{Kawamae:2011:PFR:1935826.1935911}
+Kawamae, Noriaki.
+\newblock Predicting future reviews: sentiment analysis models for
+  collaborative filtering.
+\newblock In \emph{Proceedings of the fourth ACM international conference on
+  Web search and data mining}, WSDM '11, pp.\  605--614, New York, NY, USA,
+  2011. ACM.
+\newblock ISBN 978-1-4503-0493-1.
+\newblock \doi{10.1145/1935826.1935911}.
+\newblock URL \url{http://doi.acm.org/10.1145/1935826.1935911}.
+
 \bibitem[Nikolov(2012)]{nikolov2012trend}
 Nikolov, Stanislav.
 \newblock \emph{Trend or No Trend: A Novel Nonparametric Method for Classifying
   Time Series}.
 \newblock PhD thesis, Massachusetts Institute of Technology, 2012.
+
+\bibitem[Sakaki et~al.(2010)Sakaki, Okazaki, and
+  Matsuo]{Sakaki:2010:EST:1772690.1772777}
+Sakaki, Takeshi, Okazaki, Makoto, and Matsuo, Yutaka.
+\newblock Earthquake shakes twitter users: real-time event detection by social
+  sensors.
+\newblock In \emph{Proceedings of the 19th international conference on World
+  wide web}, WWW '10, pp.\  851--860, New York, NY, USA, 2010. ACM.
+\newblock ISBN 978-1-60558-799-8.
+\newblock \doi{10.1145/1772690.1772777}.
+\newblock URL \url{http://doi.acm.org/10.1145/1772690.1772777}.
+
+\bibitem[Wu et~al.(2011)Wu, Tan, Kleinberg, and Macy]{Wu11doesbad}
+Wu, Shaomei, Tan, Chenhao, Kleinberg, Jon, and Macy, Michael.
+\newblock Does bad news go away faster.
+\newblock In \emph{In In Proceedings of the International Conference on Weblogs
+  and Social (ICWSM}, 2011.
 
 \bibitem[Yang \& Leskovec(2011)Yang and Leskovec]{Yang11}
 Yang, Jaewon and Leskovec, Jure.
