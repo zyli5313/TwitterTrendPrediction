@@ -3,44 +3,46 @@ Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: example_paper.aux
 The style file: icml2013.bst
 Database file #1: example_paper.bib
-You've used 11 entries,
+Warning--I didn't find a database entry for "langley00"
+You've used 3 entries,
             2773 wiz_defined-function locations,
-            664 strings with 6512 characters,
-and the built_in function-call counts, 4591 in all, are:
-= -- 423
-> -- 210
-< -- 12
-+ -- 73
-- -- 62
-* -- 320
-:= -- 715
-add.period$ -- 36
-call.type$ -- 11
-change.case$ -- 51
-chr.to.int$ -- 11
-cite$ -- 22
-duplicate$ -- 242
-empty$ -- 399
-format.name$ -- 77
-if$ -- 979
+            613 strings with 5449 characters,
+and the built_in function-call counts, 1376 in all, are:
+= -- 130
+> -- 70
+< -- 3
++ -- 24
+- -- 21
+* -- 99
+:= -- 218
+add.period$ -- 11
+call.type$ -- 3
+change.case$ -- 15
+chr.to.int$ -- 3
+cite$ -- 6
+duplicate$ -- 68
+empty$ -- 105
+format.name$ -- 26
+if$ -- 289
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 8
-newline$ -- 63
-num.names$ -- 49
-pop$ -- 109
+missing$ -- 2
+newline$ -- 24
+num.names$ -- 12
+pop$ -- 28
 preamble$ -- 1
-purify$ -- 42
+purify$ -- 13
 quote$ -- 0
-skip$ -- 183
+skip$ -- 57
 stack$ -- 0
-substring$ -- 138
-swap$ -- 36
-text.length$ -- 4
+substring$ -- 38
+swap$ -- 12
+text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 111
+type$ -- 33
 warning$ -- 0
-while$ -- 46
+while$ -- 12
 width$ -- 0
-write$ -- 156
+write$ -- 50
+(There was 1 warning)
